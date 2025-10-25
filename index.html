@@ -1,347 +1,210 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gallery</title>
-    <!-- Load Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Custom styles for aesthetic */
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f7f9fb;
-        }
-        .media-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 1rem;
-        }
-        .media-item {
-            aspect-ratio: 1 / 1;
-            overflow: hidden;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s;
-        }
-        .media-item:hover {
-            transform: scale(1.05);
-        }
-        .media-item img, .media-item video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        /* Custom modal styles */
-        .modal {
-            background-color: rgba(0, 0, 0, 0.8);
-            z-index: 100;
-        }
-        .modal-content {
-            max-width: 90vw;
-            max-height: 90vh;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Real-Time Media Gallery</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f7f9fb;
+    }
+    .media-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 1rem;
+    }
+    .media-item {
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
+      border-radius: 0.75rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s;
+    }
+    .media-item:hover {
+      transform: scale(1.05);
+    }
+    .media-item img, .media-item video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .modal {
+      background-color: rgba(0, 0, 0, 0.8);
+      z-index: 100;
+    }
+    .modal-content {
+      max-width: 90vw;
+      max-height: 90vh;
+    }
+  </style>
 </head>
 <body class="p-4 md:p-8">
+  <div id="app" class="max-w-4xl mx-auto">
+    <h1 class="text-4xl font-extrabold text-gray-800 mb-6 border-b-4 border-indigo-500 pb-2">
+      Shared Media Gallery
+    </h1>
 
-    <div id="app" class="max-w-4xl mx-auto">
-        <h1 class="text-4xl font-extrabold text-gray-800 mb-6 border-b-4 border-indigo-500 pb-2">
-            Shared Media Gallery
-        </h1>
-
-        <!-- Authentication and Status -->
-        <div id="status-message" class="text-sm text-gray-600 mb-4 rounded-lg p-3 bg-white shadow-md">
-            Initializing Firebase...
-        </div>
-
-        <!-- Upload Section -->
-        <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
-            <h2 class="text-2xl font-semibold mb-4 text-indigo-700">Upload New Media</h2>
-            <input type="file" id="media-upload-input" accept="image/*,video/*" class="w-full text-gray-700 p-2 border border-gray-300 rounded-lg mb-4" />
-            <button id="upload-button" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg transition duration-150 ease-in-out disabled:opacity-50" disabled>
-                Upload & Share
-            </button>
-            <progress id="upload-progress" value="0" max="100" class="w-full mt-4 h-2 rounded-full hidden"></progress>
-        </div>
-
-        <!-- Gallery Display Section -->
-        <div class="bg-white p-6 rounded-xl shadow-lg">
-            <h2 class="text-2xl font-semibold mb-6 text-indigo-700">Gallery</h2>
-            <div id="gallery-container" class="media-grid">
-                <!-- Media items will be injected here -->
-                <p id="loading-indicator" class="text-center text-gray-500 col-span-full">Loading gallery...</p>
-            </div>
-            <p id="empty-gallery-message" class="text-center text-gray-500 hidden mt-4 col-span-full">No media uploaded yet. Be the first!</p>
-        </div>
+    <div id="status-message" class="text-sm text-gray-600 mb-4 rounded-lg p-3 bg-white shadow-md">
+      Checking Firebase configuration...
     </div>
 
-    <!-- Custom Modal for Fullscreen View (DO NOT use alert/confirm) -->
-    <div id="fullscreen-modal" class="modal fixed inset-0 flex items-center justify-center p-4 hidden" onclick="document.getElementById('fullscreen-modal').classList.add('hidden')">
-        <div class="modal-content relative flex items-center justify-center" onclick="event.stopPropagation()">
-            <button class="absolute top-4 right-4 text-white text-3xl font-bold opacity-75 hover:opacity-100 p-2" onclick="document.getElementById('fullscreen-modal').classList.add('hidden')">&times;</button>
-            <div id="modal-media-content">
-                <!-- Media content will be loaded here -->
-            </div>
-        </div>
+    <!-- Upload Section -->
+    <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+      <h2 class="text-2xl font-semibold mb-4 text-indigo-700">Upload New Media</h2>
+      <input type="file" id="media-upload-input" accept="image/*,video/*"
+        class="w-full text-gray-700 p-2 border border-gray-300 rounded-lg mb-4" />
+      <button id="upload-button"
+        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg transition duration-150 ease-in-out disabled:opacity-50"
+        disabled>
+        Upload & Share
+      </button>
+      <progress id="upload-progress" value="0" max="100" class="w-full mt-4 h-2 rounded-full hidden"></progress>
     </div>
 
-    <!-- Firebase SDK Imports (MUST be in the correct order) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, addDoc, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+    <!-- Gallery -->
+    <div class="bg-white p-6 rounded-xl shadow-lg">
+      <h2 class="text-2xl font-semibold mb-6 text-indigo-700">Gallery</h2>
+      <div id="gallery-container" class="media-grid">
+        <p id="loading-indicator" class="text-center text-gray-500 col-span-full">Awaiting initialization...</p>
+      </div>
+      <p id="empty-gallery-message" class="text-center text-gray-500 hidden mt-4 col-span-full">
+        No media uploaded yet. Be the first!
+      </p>
+    </div>
+  </div>
 
-        // --- GLOBAL VARIABLES (Provided by Canvas Environment) ---
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+  <!-- Fullscreen Modal -->
+  <div id="fullscreen-modal"
+    class="modal fixed inset-0 flex items-center justify-center p-4 hidden"
+    onclick="document.getElementById('fullscreen-modal').classList.add('hidden')">
+    <div class="modal-content relative flex items-center justify-center"
+      onclick="event.stopPropagation()">
+      <button
+        class="absolute top-4 right-4 text-white text-3xl font-bold opacity-75 hover:opacity-100 p-2"
+        onclick="document.getElementById('fullscreen-modal').classList.add('hidden')">&times;</button>
+      <div id="modal-media-content"></div>
+    </div>
+  </div>
 
-        // --- FIREBASE INITIALIZATION ---
-        let app, db, auth, storage, userId = null;
-        let isAuthReady = false;
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, onSnapshot, addDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
-        try {
-            app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
-            storage = getStorage(app);
-            setLogLevel('debug'); // Enable detailed Firestore logging
+    // ✅ Your Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAswEf2UMGv2cdIyvd4j0YKJ0GFICpA8RQ",
+      authDomain: "gallery-952f2.firebaseapp.com",
+      projectId: "gallery-952f2",
+      storageBucket: "gallery-952f2.firebasestorage.app",
+      messagingSenderId: "283310782997",
+      appId: "1:283310782997:web:df311fe59f48c8bd90ec1c",
+      measurementId: "G-Z5LVQF1V37"
+    };
 
-            document.getElementById('status-message').textContent = 'Firebase initialized. Connecting...';
-        } catch (error) {
-            console.error("Firebase initialization failed:", error);
-            document.getElementById('status-message').textContent = 'Error: Firebase failed to initialize. Check console for details.';
-        }
+    // 🔥 Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
 
-        // --- UI ELEMENTS ---
-        const statusMessageEl = document.getElementById('status-message');
-        const uploadInput = document.getElementById('media-upload-input');
-        const uploadButton = document.getElementById('upload-button');
-        const uploadProgress = document.getElementById('upload-progress');
-        const galleryContainer = document.getElementById('gallery-container');
-        const loadingIndicator = document.getElementById('loading-indicator');
-        const emptyMessage = document.getElementById('empty-gallery-message');
-        const fullscreenModal = document.getElementById('fullscreen-modal');
-        const modalMediaContent = document.getElementById('modal-media-content');
+    const statusEl = document.getElementById('status-message');
+    const uploadInput = document.getElementById('media-upload-input');
+    const uploadButton = document.getElementById('upload-button');
+    const uploadProgress = document.getElementById('upload-progress');
+    const galleryContainer = document.getElementById('gallery-container');
+    const emptyGalleryMsg = document.getElementById('empty-gallery-message');
+    const loadingIndicator = document.getElementById('loading-indicator');
 
-        // --- AUTHENTICATION & USER SETUP ---
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                // User is signed in.
-                userId = user.uid;
-                statusMessageEl.textContent = `User ID: ${userId} (Authenticated)`;
-                uploadButton.disabled = false;
-            } else {
-                // User is signed out. Attempt to sign in with custom token or anonymously.
-                try {
-                    if (typeof __initial_auth_token !== 'undefined') {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-                } catch (error) {
-                    console.error("Authentication failed:", error);
-                    statusMessageEl.textContent = `Error: Authentication failed. Uploads disabled. ${error.message}`;
-                    uploadButton.disabled = true;
-                }
-            }
-            isAuthReady = true;
-            // Once auth is ready, set up the gallery listener
-            if (userId) {
-                 loadGallery();
-            }
+    let currentUser = null;
+
+    // 👤 Anonymous Auth
+    signInAnonymously(auth).catch(err => {
+      statusEl.textContent = "Authentication failed: " + err.message;
+    });
+
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        currentUser = user;
+        statusEl.textContent = "Connected as anonymous user.";
+        initGallery();
+      } else {
+        statusEl.textContent = "User not signed in.";
+      }
+    });
+
+    // 📸 Upload Handler
+    uploadInput.addEventListener('change', () => {
+      uploadButton.disabled = !uploadInput.files.length;
+    });
+
+    uploadButton.addEventListener('click', async () => {
+      const file = uploadInput.files[0];
+      if (!file) return;
+
+      uploadButton.disabled = true;
+      uploadProgress.classList.remove('hidden');
+      const fileRef = ref(storage, `uploads/${Date.now()}_${file.name}`);
+      const uploadTask = uploadBytesResumable(fileRef, file);
+
+      uploadTask.on('state_changed', snapshot => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        uploadProgress.value = progress;
+      }, err => {
+        alert("Upload failed: " + err.message);
+      }, async () => {
+        const url = await getDownloadURL(uploadTask.snapshot.ref);
+        await addDoc(collection(db, 'media'), {
+          url,
+          type: file.type.startsWith('video') ? 'video' : 'image',
+          createdAt: serverTimestamp(),
+          user: currentUser.uid
         });
+        uploadProgress.classList.add('hidden');
+        uploadProgress.value = 0;
+        uploadInput.value = '';
+        uploadButton.disabled = true;
+      });
+    });
 
-        // --- GALLERY DISPLAY LOGIC (Firestore) ---
+    // 🖼️ Real-Time Gallery
+    function initGallery() {
+      const q = query(collection(db, 'media'), orderBy('createdAt', 'desc'));
+      onSnapshot(q, snapshot => {
+        galleryContainer.innerHTML = '';
+        if (snapshot.empty) {
+          emptyGalleryMsg.classList.remove('hidden');
+          loadingIndicator.classList.add('hidden');
+          return;
+        }
+        emptyGalleryMsg.classList.add('hidden');
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const item = document.createElement('div');
+          item.className = 'media-item cursor-pointer';
+          item.innerHTML = data.type === 'video'
+            ? `<video src="${data.url}" muted playsinline></video>`
+            : `<img src="${data.url}" alt="Media" />`;
+          item.addEventListener('click', () => openModal(data));
+          galleryContainer.appendChild(item);
+        });
+        loadingIndicator.classList.add('hidden');
+      });
+    }
 
-        /**
-         * Creates an HTML element for media display in the grid.
-         * @param {Object} item - Media object from Firestore.
-         */
-        const createMediaElement = (item) => {
-            const itemEl = document.createElement('div');
-            itemEl.className = 'media-item cursor-pointer';
-            itemEl.setAttribute('data-url', item.url);
-            itemEl.setAttribute('data-type', item.type);
-
-            let mediaEl;
-
-            if (item.type.startsWith('image/')) {
-                mediaEl = document.createElement('img');
-                mediaEl.src = item.url;
-                mediaEl.alt = item.name;
-            } else if (item.type.startsWith('video/')) {
-                mediaEl = document.createElement('video');
-                mediaEl.src = item.url;
-                mediaEl.controls = false; // Hide controls in the grid view
-                mediaEl.autoplay = false;
-                mediaEl.loop = true;
-                mediaEl.muted = true;
-                mediaEl.onmouseover = () => mediaEl.play();
-                mediaEl.onmouseout = () => mediaEl.pause();
-                // Add a placeholder overlay (optional, but good for UX)
-                const overlay = document.createElement('div');
-                overlay.className = 'absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center text-white text-xl opacity-0 hover:opacity-100 transition duration-300';
-                overlay.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8"><path fill-rule="evenodd" d="M4.5 5.653c0-1.426 1.377-2.58 3.033-2.58h.047l5.526 2.763c.969.485 1.706 1.51 1.706 2.653V18.15c0 1.142-.737 2.167-1.706 2.652l-5.526 2.764h-.047c-1.656 0-3.033-1.155-3.033-2.58V5.653Z" clip-rule="evenodd" /></svg>';
-                itemEl.appendChild(mediaEl);
-                itemEl.appendChild(overlay);
-            } else {
-                return null; // Skip unsupported types
-            }
-
-            mediaEl.className = 'w-full h-full object-cover';
-
-            itemEl.onclick = () => showFullscreen(item.url, item.type);
-
-            // If it's an image item, don't re-append the element since video logic handled it.
-            if (item.type.startsWith('image/')) {
-                itemEl.appendChild(mediaEl);
-            }
-
-            return itemEl;
-        };
-
-        const showFullscreen = (url, type) => {
-            modalMediaContent.innerHTML = ''; // Clear previous content
-
-            let mediaEl;
-            if (type.startsWith('image/')) {
-                mediaEl = document.createElement('img');
-                mediaEl.src = url;
-                mediaEl.alt = 'Fullscreen Image';
-            } else if (type.startsWith('video/')) {
-                mediaEl = document.createElement('video');
-                mediaEl.src = url;
-                mediaEl.controls = true;
-                mediaEl.autoplay = true;
-                mediaEl.loop = true;
-                mediaEl.muted = false; // Unmute in fullscreen
-            }
-
-            mediaEl.className = 'rounded-lg shadow-2xl max-w-full max-h-[90vh]';
-            modalMediaContent.appendChild(mediaEl);
-            fullscreenModal.classList.remove('hidden');
-        };
-
-        const loadGallery = () => {
-            if (!db) {
-                console.error("Firestore not initialized.");
-                return;
-            }
-
-            const galleryCollection = collection(db, `artifacts/${appId}/public/data/gallery_media`);
-
-            // Listen for real-time updates (onSnapshot)
-            onSnapshot(galleryCollection, (snapshot) => {
-                loadingIndicator.classList.add('hidden');
-                galleryContainer.innerHTML = ''; // Clear gallery content
-
-                const items = [];
-                snapshot.forEach((doc) => {
-                    items.push(doc.data());
-                });
-
-                if (items.length === 0) {
-                    emptyMessage.classList.remove('hidden');
-                    return;
-                }
-
-                emptyMessage.classList.add('hidden');
-
-                // Sort by creation time (newest first, since Firestore doesn't allow orderBy easily here)
-                items.sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
-
-                items.forEach(item => {
-                    const mediaEl = createMediaElement(item);
-                    if (mediaEl) {
-                        galleryContainer.appendChild(mediaEl);
-                    }
-                });
-
-            }, (error) => {
-                console.error("Error listening to gallery:", error);
-                loadingIndicator.textContent = "Error loading gallery. See console.";
-            });
-        };
-
-
-        // --- UPLOAD LOGIC (Firebase Storage) ---
-
-        const uploadFile = async () => {
-            const file = uploadInput.files[0];
-
-            if (!file) {
-                statusMessageEl.textContent = 'Please select a file to upload.';
-                return;
-            }
-            if (!userId) {
-                statusMessageEl.textContent = 'User not authenticated. Please wait or refresh.';
-                return;
-            }
-
-            uploadButton.disabled = true;
-            uploadProgress.classList.remove('hidden');
-            uploadProgress.value = 0;
-            statusMessageEl.textContent = `Starting upload: ${file.name}...`;
-
-            // 1. Create a storage reference
-            const storagePath = `media/${userId}/${Date.now()}_${file.name}`;
-            const fileRef = ref(storage, storagePath);
-
-            // 2. Start the upload task
-            const uploadTask = uploadBytesResumable(fileRef, file);
-
-            uploadTask.on('state_changed',
-                (snapshot) => {
-                    // Monitor progress
-                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    uploadProgress.value = progress;
-                    statusMessageEl.textContent = `Uploading ${file.name}: ${progress.toFixed(0)}% done.`;
-                },
-                (error) => {
-                    // Handle unsuccessful uploads
-                    console.error("Upload failed:", error);
-                    statusMessageEl.textContent = `Upload failed: ${error.message}`;
-                    uploadButton.disabled = false;
-                    uploadProgress.classList.add('hidden');
-                },
-                async () => {
-                    // 3. Upload completed successfully, now get the download URL
-                    try {
-                        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-
-                        // 4. Save metadata to Firestore
-                        const mediaDocRef = collection(db, `artifacts/${appId}/public/data/gallery_media`);
-                        await addDoc(mediaDocRef, {
-                            name: file.name,
-                            url: downloadURL,
-                            type: file.type,
-                            storagePath: storagePath,
-                            ownerId: userId,
-                            createdAt: serverTimestamp()
-                        });
-
-                        // 5. Final success message and cleanup
-                        statusMessageEl.textContent = `Successfully uploaded and shared ${file.name}!`;
-                        uploadInput.value = ''; // Clear file input
-                        uploadProgress.classList.add('hidden');
-                        uploadButton.disabled = false;
-
-                    } catch (error) {
-                        console.error("Error getting URL or saving metadata:", error);
-                        statusMessageEl.textContent = `Upload success, but failed to save metadata: ${error.message}`;
-                        uploadButton.disabled = false;
-                        uploadProgress.classList.add('hidden');
-                    }
-                }
-            );
-        };
-
-        // --- EVENT LISTENERS ---
-        uploadButton.addEventListener('click', uploadFile);
-
-    </script>
+    // 🔍 Modal Viewer
+    function openModal(data) {
+      const modal = document.getElementById('fullscreen-modal');
+      const content = document.getElementById('modal-media-content');
+      content.innerHTML = data.type === 'video'
+        ? `<video src="${data.url}" controls autoplay class="max-w-full max-h-[90vh] rounded-lg"></video>`
+        : `<img src="${data.url}" class="max-w-full max-h-[90vh] rounded-lg" />`;
+      modal.classList.remove('hidden');
+    }
+  </script>
 </body>
 </html>
-
